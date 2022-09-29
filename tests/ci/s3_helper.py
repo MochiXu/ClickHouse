@@ -112,8 +112,10 @@ class S3Helper:
 
     def upload_test_report_to_s3(self, file_path, s3_path):
         if CI:
+            logging.info("_upload_file_to_s3")
             return self._upload_file_to_s3(S3_TEST_REPORTS_BUCKET, file_path, s3_path)
         else:
+            logging.info("copy_file_to_local")
             return S3Helper.copy_file_to_local(
                 S3_TEST_REPORTS_BUCKET, file_path, s3_path
             )

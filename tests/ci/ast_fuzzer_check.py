@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from asyncio.log import logger
 import logging
 import subprocess
 import os
@@ -69,10 +70,15 @@ if __name__ == "__main__":
         logging.info("Check is already finished according to github status, exiting")
         sys.exit(0)
 
+    # 拉取镜像 clickhouse/fuzzer:latest
     docker_image = get_image_with_version(temp_path, IMAGE_NAME)
 
     build_name = get_build_name_for_check(check_name)
+    logging.info("Got build_name %s", build_name)
+
     print(build_name)
+
+    # build url 的作用是什么？貌似是 docker run 过程中需要用到的某个数据
     urls = read_build_urls(build_name, reports_path)
     if not urls:
         raise Exception("No build URLs found")
@@ -106,12 +112,19 @@ if __name__ == "__main__":
             else:
                 logging.info("Run failed")
 
+    # 这个函数是否会阻塞
+    logging.info("before check all %s", stopwatch.duration_seconds)
     subprocess.check_call(f"sudo chown -R ubuntu:ubuntu {temp_path}", shell=True)
+    logging.info("after check all %s", stopwatch.duration_seconds)
+
+    logging.info("temp_path is %s", temp_path)
 
     check_name_lower = (
         check_name.lower().replace("(", "").replace(")", "").replace(" ", "")
     )
     s3_prefix = f"{pr_info.number}/{pr_info.sha}/fuzzer_{check_name_lower}/"
+    logging.info("s3_prefix is %s", s3_prefix)
+
     paths = {
         "runlog.log": run_log_path,
         "main.log": os.path.join(workspace_path, "main.log"),
@@ -121,6 +134,7 @@ if __name__ == "__main__":
         "core.gz": os.path.join(workspace_path, "core.gz"),
     }
 
+    # 这里应该是用 s3 接口？上传测试结果
     s3_helper = S3Helper()
     for f in paths:
         try:
@@ -130,6 +144,7 @@ if __name__ == "__main__":
             paths[f] = ""
 
     report_url = GITHUB_RUN_URL
+    logging.info("report_url is %s", report_url)
     if paths["runlog.log"]:
         report_url = paths["runlog.log"]
     if paths["main.log"]:
@@ -140,6 +155,7 @@ if __name__ == "__main__":
         report_url = paths["fuzzer.log"]
     if paths["report.html"]:
         report_url = paths["report.html"]
+    logging.info("now report_url is %s", report_url)
 
     # Try to get status message saved by the fuzzer
     try:
@@ -147,11 +163,15 @@ if __name__ == "__main__":
             os.path.join(workspace_path, "status.txt"), "r", encoding="utf-8"
         ) as status_f:
             status = status_f.readline().rstrip("\n")
+            logging.info("check status.txt, status is %s", status)
+
 
         with open(
             os.path.join(workspace_path, "description.txt"), "r", encoding="utf-8"
         ) as desc_f:
             description = desc_f.readline().rstrip("\n")[:140]
+            logging.info("check description.txt, description is %s", description)
+
     except:
         status = "failure"
         description = "Task failed: $?=" + str(retcode)
