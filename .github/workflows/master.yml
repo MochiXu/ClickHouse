@@ -10,7 +10,7 @@ on: # yamllint disable-line rule:truthy
       - 'mochix/ast_fuzzer'
 jobs:
   PythonUnitTests:
-    runs-on: [self-hosted, style-checker]
+    runs-on: [self-hosted]
     steps:
       - name: Clear repository
         run: |
