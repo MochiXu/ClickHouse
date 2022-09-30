@@ -3055,7 +3055,7 @@ jobs:
     steps:
       - name: Clear repository
         run: |
-          sudo rm -fr "$GITHUB_WORKSPACE" && mkdir "$GITHUB_WORKSPACE"
+          sudo rm -rf "$GITHUB_WORKSPACE" && mkdir "$GITHUB_WORKSPACE"
       - name: Check out repository code
         uses: actions/checkout@v2
       - name: Finish label

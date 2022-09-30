@@ -22,6 +22,7 @@ class ClickHouseHelper:
             "X-ClickHouse-Key": get_parameter_from_ssm("clickhouse-test-stat-password"),
         }
 
+    # 插入数据到数据库中，使用 post 方法将数据发送出去
     @staticmethod
     def _insert_json_str_info_impl(url, auth, db, table, json_str):
         params = {
@@ -78,6 +79,7 @@ class ClickHouseHelper:
     def _insert_json_str_info(self, db, table, json_str):
         self._insert_json_str_info_impl(self.url, self.auth, db, table, json_str)
 
+    # 插入单条 event
     def insert_event_into(self, db, table, event, safe=True):
         event_str = json.dumps(event)
         try:
@@ -89,6 +91,7 @@ class ClickHouseHelper:
             if not safe:
                 raise
 
+    # 插入多条 event
     def insert_events_into(self, db, table, events, safe=True):
         jsons = []
         for event in events:
@@ -103,6 +106,7 @@ class ClickHouseHelper:
             if not safe:
                 raise
 
+    # 获取每行 json
     def _select_and_get_json_each_row(self, db, query):
         params = {
             "database": db,
@@ -187,6 +191,7 @@ def prepare_tests_results_for_clickhouse(
         current_row["test_status"] = test_status
         result.append(current_row)
 
+    print("prepare_tests_results_for_clickhouse "+result)
     return result
 
 
