@@ -406,6 +406,7 @@ def main():
         changed_json = os.path.join(TEMP_PATH, "changed_images.json")
 
     if args.push:
+        print("images_check push")
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
             "docker login --username 'robotclickhouse' --password-stdin",
             input=get_parameter_from_ssm("dockerhub_robot_password"),
